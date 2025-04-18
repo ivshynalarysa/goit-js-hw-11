@@ -4,7 +4,7 @@ import axios from "axios";
 const API_KEY = "49795001-63fc88dd531083a7427250d55";
 
 export function getImagesByQuery(query) {
-    return axios("https://pixabay.com/api/", {
+    return axios("https://pixabay.com/api/git g", {
         params: {
             key: API_KEY,
             q: query,
