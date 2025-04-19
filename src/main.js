@@ -1,57 +1,74 @@
 import iziToast from "izitoast";
 import "izitoast/dist/css/iziToast.min.css";
 import { getImagesByQuery } from "./js/pixabay-api";
-import { createGallery, clearGallery, showLoader, hideLoader } from "./js/render-functions";
+import { createGallery, clearGallery } from "./js/render-functions";
 
-const form = document.querySelector(".form");
-const searchInput = document.querySelector(".input");
+const refs = {
+	form: document.querySelector('form'),
+	loader: document.querySelector('.loader'),
+	gallery: document.querySelector('.gallery'),
+};
 
-form.addEventListener('submit', handleSubmit);
+let lightbox;
 
-function handleSubmit(event) {
-    event.preventDefault();
-    const enteredInput = searchInput.value.trim();
+hideLoader();
 
-    if (!enteredInput) {
-        iziToast.warning({
-            position: 'topRight',
-            title: 'Warning',
-            message: 'Please enter a search query',
-        });
-        searchInput.focus();
-        return;
-    }
+refs.form.addEventListener('submit', getImgFromSearch);
 
-    showLoader();
-    clearGallery();
+function getImgFromSearch(e) {
+	e.preventDefault();
+	refs.gallery.innerHTML = '';
+	showLoader();
 
-    getImagesByQuery(enteredInput)
-        .then(response => {
-            return response.data;
-        })
-        .then(response => {
-            if (!response.hits || response.hits.length === 0) {
-                iziToast.warning({
-                    position: 'topRight',
-                    title: 'Warning',
-                    message: 'Sorry, no images found. Please try another query!',
-                });
-                return;
-            }
-            createGallery(response.hits);
-        })
-        .catch(error => {
-            iziToast.error({
-                position: 'topRight',
-                title: 'Error',
-                message: 'Failed to fetch images. Please try again later.',
-            });
-            console.error('Error:', error);
-        })
-        .finally(() => {
-            hideLoader();
-            searchInput.value = "";
-        });
+	const querySearch = e.target.elements.search.value.trim();
+	if (!querySearch) {
+		showMessage('Please enter a search term!');
+		hideLoader();
+		return;
+	}
+	getImagesByQuery(querySearch)
+		.then(data => {
+			refs.gallery.innerHTML = createGallery(data.hits);
+			if (lightbox) {
+				lightbox.refresh();
+			} else {
+				lightbox = new SimpleLightbox('.gallery a', {
+					captions: true,
+					captionsData: 'alt',
+					captionDelay: 250,
+				});
+			}
+		})
+		.catch(error => {
+			showMessage(
+				'Sorry, there are no images matching <br> your search query. Please, try again!'
+			);
+		})
+		.finally(() => {
+			hideLoader();
+		});
+	e.target.reset();
+}
 
+function hideLoader() {
+	refs.loader.style.display = 'none';
+}
 
+function showLoader() {
+	refs.loader.style.display = 'block';
+}
+
+function showMessage(message) {
+	iziToast.warning({
+		message: message,
+		titleColor: '#fff',
+		titleSize: '16px',
+		titleLineHeight: '1.5',
+		messageColor: '#fff',
+		messageSize: '16px',
+		messageLineHeight: '1.5',
+		backgroundColor: '#ef4040',
+		iconUrl: './img/octagon.svg',
+		position: 'topRight',
+	});
 }

@@ -1,56 +1,37 @@
 import SimpleLightbox from "simplelightbox";
 import "simplelightbox/dist/simple-lightbox.min.css";
 
-const imageList = document.querySelector(".gallery");
-const loader = document.querySelector(".loader");
-let lightbox = null;
+function galeryTemplate(data) {
+	const {
+		webformatURL,
+		largeImageURL,
+		tags,
+		likes,
+		views,
+		comments,
+		downloads,
+	} = data;
 
-function createImageCard(image) {
-    const shortAlt = image.tags.split(',').slice(0, 3).join(', ');
-    return `
-    <li class="gallery-item">
-        <a href="${image.largeImageURL}" class="gallery-link">
-            <img
-                class="gallery-image"
-                src="${image.webformatURL}"
-                alt="${shortAlt}"
-            />
-            <div class="info">
-                <div class="info-item">
-                    <p class="info-label">Likes</p>
-                    <span class="info-value">${image.likes}</span>
-                </div>
-                <div class="info-item">
-                    <p class="info-label">Views</p>
-                    <span class="info-value">${image.views}</span>
-                </div>
-                <div class="info-item">
-                    <p class="info-label">Comments</p>
-                    <span class="info-value">${image.comments}</span>
-                </div>
-                <div class="info-item">
-                    <p class="info-label">Downloads</p>
-                    <span class="info-value">${image.downloads}</span>
-                </div>
-            </div>
+	return `<li class="gallery-item">
+        <div>
+        <a class="gallery-link" href="${largeImageURL}">
+          <img class="gallery-image" src="${webformatURL}" alt="${tags}" />
         </a>
-    </li>
-    `;
+        </div>
+        <ul class="gallery-sublist">
+          <li class="gallery-subitem"><p class="sub-text">Likes</p><p class="sub-value">${likes}</p></li>
+          <li class="gallery-subitem"><p class="sub-text">Views</p><p class="sub-value">${views}</p></li>
+          <li class="gallery-subitem"><p class="sub-text">Comments</p><p class="sub-value">${comments}</p></li>
+          <li class="gallery-subitem"><p class="sub-text">Downloads</p><p class="sub-value">${downloads}</p></li>
+        </ul>
+      </li>`;
 }
 
-export function createGallery(images) {
-    const createMurkup = images.map(createImageCard).join('');
-    imageList.insertAdjacentHTML('beforeend', createMurkup);
-
-    if (lightbox) {
-        lightbox.refresh();
-    } else {
-        lightbox = new SimpleLightbox('.gallery a', {
-            captionsData: 'alt',
-            captionDelay: 250,
-        });
-    }
+export function createGallery(data) {
+	return data.map(galeryTemplate).join('');
 }
+
+
 
 export function clearGallery() {
     imageList.innerHTML = '';
@@ -60,10 +41,11 @@ export function clearGallery() {
     }
 }
 
-export function showLoader() {
-    loader.classList.remove("hidden");
-}
+//export function showLoader() {
+   //loader.classList.remove("hidden");
+//}
 
-export function hideLoader() {
-    loader.classList.add("hidden");
-}
+//export function hideLoader() {
+  //loader.classList.add("hidden");
+//}
+
