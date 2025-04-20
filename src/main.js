@@ -1,7 +1,7 @@
 import iziToast from "izitoast";
 import "izitoast/dist/css/iziToast.min.css";
 import { getImagesByQuery } from "./js/pixabay-api";
-import { createGallery, clearGallery } from "./js/render-functions";
+import { createGallery, clearGallery, showLoader, hideLoader } from "./js/render-functions";
 
 const refs = {
 	form: document.querySelector('form'),
@@ -9,54 +9,65 @@ const refs = {
 	gallery: document.querySelector('.gallery'),
 };
 
-let lightbox;
+
 
 hideLoader();
 
-refs.form.addEventListener('submit', getImgFromSearch);
+refs.form.addEventListener('submit', handleSubmit);
 
-function getImgFromSearch(e) {
-	e.preventDefault();
+
+
+
+function handleSubmit(event) {
+    event.preventDefault();
 	refs.gallery.innerHTML = '';
+
+	
 	showLoader();
 
-	const querySearch = e.target.elements.search.value.trim();
-	if (!querySearch) {
-		showMessage('Please enter a search term!');
-		hideLoader();
-		return;
-	}
-	getImagesByQuery(querySearch)
-		.then(data => {
-			refs.gallery.innerHTML = createGallery(data.hits);
-			if (lightbox) {
-				lightbox.refresh();
-			} else {
-				lightbox = new SimpleLightbox('.gallery a', {
-					captions: true,
-					captionsData: 'alt',
-					captionDelay: 250,
-				});
-			}
-		})
-		.catch(error => {
-			showMessage(
-				'Sorry, there are no images matching <br> your search query. Please, try again!'
-			);
-		})
-		.finally(() => {
-			hideLoader();
-		});
-	e.target.reset();
+    const enteredInput = event.target.elements.search.value.trim();
+	
+
+    if (!enteredInput) {
+        showMessage ('Please enter a search query');
+        
+        
+        return;
+    }
+
+    showLoader();
+	
+    clearGallery();
+	
+
+    getImagesByQuery(enteredInput)
+        .then(response => {
+            const data = response.data;
+
+            if (!data.hits || data.hits.length === 0) {
+                showMessage ('Sorry, no images found. Please try another query!');
+                
+                return;
+            }
+
+            
+            createGallery(data.hits);
+
+        })
+        .catch(error => {
+            showMessage ( 'Failed to fetch images. Please try again later.');
+            
+            console.error('Error:', error);
+        })
+        .finally(() => {
+            hideLoader();
+            
+        });
+		event.target.reset();
 }
 
-function hideLoader() {
-	refs.loader.style.display = 'none';
-}
 
-function showLoader() {
-	refs.loader.style.display = 'block';
-}
+
 
 function showMessage(message) {
 	iziToast.warning({
@@ -68,7 +79,6 @@ function showMessage(message) {
 		messageSize: '16px',
 		messageLineHeight: '1.5',
 		backgroundColor: '#ef4040',
-		iconUrl: './img/octagon.svg',
 		position: 'topRight',
 	});
 }
